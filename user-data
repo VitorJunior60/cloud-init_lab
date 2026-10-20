@@ -1,18 +1,47 @@
 #cloud-config
 
 # Atualiza a lista de pacotes antes das instalações
+package_update: true
 
+# Cria um usuário administrador (sudo sem senha) com acesso SSH por chave pública
+users:
+  - name: meu-usuario
+    gecos: Usuario administrador do laboratorio
+    groups: [sudo]
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN5G1APCR4vLMD4haQV5oNtKnzLovpRRJJgjIIBiGWGY"
 
-# Cria um usuário administrador
-
-
-# Instala os softwares declarativamente
-
+# Instala os softwares declarativamente (Ubuntu: docker.io e nginx)
+packages:
+  - docker.io
+  - nginx
 
 # Cria uma página personalizada
-
+write_files:
+  - path: /var/www/html/index.html
+    owner: root:root
+    permissions: "0644"
+    content: |
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <title>Cloud-Init Lab</title>
+      </head>
+      <body>
+        <h1>Cloud-Init Lab</h1>
+        <p>Servidor provisionado automaticamente com Cloud-Init, Nginx e Docker.</p>
+      </body>
+      </html>
 
 # Executa comandos após as etapas de configuração
-
+runcmd:
+  - [systemctl, enable, --now, nginx]
+  - [systemctl, enable, --now, docker]
+  - [usermod, -aG, docker, meu-usuario]
 
 # Mensagem final registrada nos logs
+final_message: "Cloud-Init concluído: usuário meu-usuario criado, Nginx e Docker instalados e ativos."
